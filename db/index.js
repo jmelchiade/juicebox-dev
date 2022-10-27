@@ -106,6 +106,8 @@ async function createTables() {
           password varchar(255) NOT NULL,
           name VARCHAR (255) NOT NULL,
           location VARCHAR(255) NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          content TEXT NOT NULL,
           active BOOLEAN DEFAULT true
       );
     `);
@@ -154,7 +156,7 @@ async function getPostsByUser(userId) {
     try {
       const { rows } = await client.query(`
         SELECT * FROM posts
-        WHERE "authorId"=${ userId };
+        WHERE "authorId"=1;
       `);
   
       return rows;
@@ -165,14 +167,27 @@ async function getPostsByUser(userId) {
 
   async function getUserById(userId){
    const theUser =  await client.query(`
-    
+   SELECT * FROM users
+   WHERE "authorId"=1;
     `)
+    console.log('this is the user', theUser)
 
+  }
 
-
-
-
-
+  async function createInitialPosts() {
+    try {
+      const [albert, sandra, glamgal] = await getAllUsers();
+  
+      await createPost({
+        authorId: albert.id,
+        title: "First Post",
+        content: "This is my first post. I hope I love writing blogs as much as I love writing them."
+      });
+  
+      // a couple more
+    } catch (error) {
+      throw error;
+    }
   }
 
 
@@ -201,5 +216,6 @@ module.exports = {
   testDB,
   rebuildDB, 
   createTables, 
-  createInitialUsers
+  createInitialUsers,
+  getUserById
 }

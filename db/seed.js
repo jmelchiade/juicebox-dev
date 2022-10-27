@@ -1,7 +1,7 @@
 
 const{
   client,
-  getAllUsers, createUser, updateUser, testDB, rebuildDB, createTables
+  getAllUsers, createUser, updateUser, testDB, rebuildDB, createTables, getUserById
 } = require('./index');
 
 async function createInitialUsers() {
@@ -30,7 +30,7 @@ async function createInitialUsers() {
 
 
   
-
+getUserById()
 rebuildDB()
   .then(testDB)
   .catch(console.error)
