@@ -1,24 +1,24 @@
-const { Client } = require('pg') // imports the pg module
+const { Client } = require("pg"); // imports the pg module
 
-const client = new Client('postgres://localhost:5432/juicebox-dev');
+const client = new Client("postgres://localhost:5432/juicebox-dev");
 
 /**
  * USER Methods
  */
 
-async function createUser({ 
-  username, 
-  password,
-  name,
-  location
-}) {
+async function createUser({ username, password, name, location }) {
   try {
-    const { rows: [ user ] } = await client.query(`
+    const {
+      rows: [user],
+    } = await client.query(
+      `
       INSERT INTO users(username, password, name, location) 
       VALUES($1, $2, $3, $4) 
       ON CONFLICT (username) DO NOTHING 
       RETURNING *;
-    `, [username, password, name, location]);
+    `,
+      [username, password, name, location]
+    );
 
     return user;
   } catch (error) {
@@ -28,9 +28,9 @@ async function createUser({
 
 async function updateUser(id, fields = {}) {
   // build the set string
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${ key }"=$${ index + 1 }`
-  ).join(', ');
+  const setString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(", ");
 
   // return early if this is called without fields
   if (setString.length === 0) {
@@ -38,12 +38,17 @@ async function updateUser(id, fields = {}) {
   }
 
   try {
-    const { rows: [ user ] } = await client.query(`
+    const {
+      rows: [user],
+    } = await client.query(
+      `
       UPDATE users
-      SET ${ setString }
-      WHERE id=${ id }
+      SET ${setString}
+      WHERE id=${id}
       RETURNING *;
-    `, Object.values(fields));
+    `,
+      Object.values(fields)
+    );
 
     return user;
   } catch (error) {
@@ -66,14 +71,16 @@ async function getAllUsers() {
 
 async function getUserById(userId) {
   try {
-    const { rows: [ user ] } = await client.query(`
+    const {
+      rows: [user],
+    } = await client.query(`
       SELECT id, username, name, location, active
       FROM users
-      WHERE id=${ userId }
+      WHERE id=${userId}
     `);
 
     if (!user) {
-      return null
+      return null;
     }
 
     user.posts = await getPostsByUser(userId);
@@ -88,17 +95,18 @@ async function getUserById(userId) {
  * POST Methods
  */
 
-async function createPost({
-  authorId,
-  title,
-  content
-}) {
+async function createPost({ authorId, title, content }) {
   try {
-    const { rows: [ post ] } = await client.query(`
+    const {
+      rows: [post],
+    } = await client.query(
+      `
       INSERT INTO posts("authorId", title, content) 
       VALUES($1, $2, $3)
       RETURNING *;
-    `, [authorId, title, content]);
+    `,
+      [authorId, title, content]
+    );
 
     return post;
   } catch (error) {
@@ -106,11 +114,43 @@ async function createPost({
   }
 }
 
+async function createTags(tagList) {
+  if (tagList.length === 0) {
+    return;
+  }
+  const insertValues = tagList.map((_, index) => `$${index + 1}`).join("), (");
+
+  const selectValues = tagList.map((_, index) => `$${index + 1}`).join(", ");
+
+  try {
+    await client.query(
+      `
+        INSERT INTO tags(name)
+        VALUES (${insertValues})
+        ON CONFLICT (name) DO NOTHING;
+      `,
+      tagList
+    );
+
+    const { rows } = await client.query(
+      `
+      SELECT * FROM tags 
+        WHERE name IN (${selectValues})
+        
+      `,
+      tagList
+    );
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function updatePost(id, fields = {}) {
   // build the set string
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${ key }"=$${ index + 1 }`
-  ).join(', ');
+  const setString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(", ");
 
   // return early if this is called without fields
   if (setString.length === 0) {
@@ -118,12 +158,17 @@ async function updatePost(id, fields = {}) {
   }
 
   try {
-    const { rows: [ post ] } = await client.query(`
+    const {
+      rows: [post],
+    } = await client.query(
+      `
       UPDATE posts
-      SET ${ setString }
-      WHERE id=${ id }
+      SET ${setString}
+      WHERE id=${id}
       RETURNING *;
-    `, Object.values(fields));
+    `,
+      Object.values(fields)
+    );
 
     return post;
   } catch (error) {
@@ -149,7 +194,7 @@ async function getPostsByUser(userId) {
     const { rows } = await client.query(`
       SELECT * 
       FROM posts
-      WHERE "authorId"=${ userId };
+      WHERE "authorId"=${userId};
     `);
 
     return rows;
@@ -158,7 +203,7 @@ async function getPostsByUser(userId) {
   }
 }
 
-module.exports = {  
+module.exports = {
   client,
   createUser,
   updateUser,
@@ -167,5 +212,5 @@ module.exports = {
   createPost,
   updatePost,
   getAllPosts,
-  getPostsByUser
-}
+  getPostsByUser,
+};
