@@ -1,3 +1,7 @@
+const PORT = 3000;
+const express = require("express");
+const server = express();
+
 const { Client } = require("pg"); // imports the pg module
 
 const client = new Client("postgres://localhost:5432/juicebox-dev");
@@ -176,24 +180,27 @@ async function createTags(tagList) {
 }
 
 async function updatePost(postId, fields = {}) {
-  // read off the tags & remove that field 
+  // read off the tags & remove that field
   const { tags } = fields; // might be undefined
   delete fields.tags;
 
   // build the set string
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${ key }"=$${ index + 1 }`
-  ).join(', ');
+  const setString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(", ");
 
   try {
     // update any fields that need to be updated
     if (setString.length > 0) {
-      await client.query(`
+      await client.query(
+        `
         UPDATE posts
-        SET ${ setString }
-        WHERE id=${ postId }
+        SET ${setString}
+        WHERE id=${postId}
         RETURNING *;
-      `, Object.values(fields));
+      `,
+        Object.values(fields)
+      );
     }
 
     // return early if there's no tags to update
@@ -203,17 +210,18 @@ async function updatePost(postId, fields = {}) {
 
     // make any new tags that need to be made
     const tagList = await createTags(tags);
-    const tagListIdString = tagList.map(
-      tag => `${ tag.id }`
-    ).join(', ');
+    const tagListIdString = tagList.map((tag) => `${tag.id}`).join(", ");
 
     // delete any post_tags from the database which aren't in that tagList
-    await client.query(`
+    await client.query(
+      `
       DELETE FROM post_tags
       WHERE "tagId"
-      NOT IN (${ tagListIdString })
+      NOT IN (${tagListIdString})
       AND "postId"=$1;
-    `, [postId]);
+    `,
+      [postId]
+    );
 
     // and create post_tags as necessary
     await addTagsToPost(postId, tagList);
@@ -224,7 +232,6 @@ async function updatePost(postId, fields = {}) {
   }
 }
 
-
 async function getAllPosts() {
   try {
     const { rows: postIds } = await client.query(`
@@ -233,15 +240,14 @@ async function getAllPosts() {
     `);
 
     const posts = await Promise.all(
-      postIds.map((post => getPostById(post.id))
-    ));
+      postIds.map((post) => getPostById(post.id))
+    );
 
     return posts;
   } catch (error) {
     throw error;
   }
 }
-
 
 async function getPostsByUser(userId) {
   try {
@@ -252,8 +258,8 @@ async function getPostsByUser(userId) {
     `);
 
     const posts = await Promise.all(
-      postIds.map((post => getPostById(post.id))
-    ));
+      postIds.map((post) => getPostById(post.id))
+    );
 
     return posts;
   } catch (error) {
@@ -308,21 +314,22 @@ async function getPostById(postId) {
 
 async function getPostsByTagName(tagName) {
   try {
-    const { rows: postIds } = await client.query(`
+    const { rows: postIds } = await client.query(
+      `
       SELECT posts.id
       FROM posts
       JOIN post_tags ON posts.id=post_tags."postId"
       JOIN tags ON tags.id=post_tags."tagId"
       WHERE tags.name=$1;
-    `, [tagName]);
+    `,
+      [tagName]
+    );
 
-    return await Promise.all(postIds.map(
-      post => getPostById(post.id)
-    ));
+    return await Promise.all(postIds.map((post) => getPostById(post.id)));
   } catch (error) {
     throw error;
   }
-} 
+}
 
 module.exports = {
   client,
@@ -336,5 +343,9 @@ module.exports = {
   getAllPosts,
   getPostsByUser,
   getPostById,
-  getPostsByTagName
+  getPostsByTagName,
 };
+
+server.listen(PORT, () => {
+  console.log("The server is up on port", PORT);
+});
