@@ -9,9 +9,10 @@ const {
   updatePost,
   getAllPosts,
   getPostsByUser,
-  getPostsByTagName
+  getPostsByTagName,
 } = require("./index");
 
+// this is Jens Branch
 async function dropTables() {
   try {
     console.log("Starting to drop tables...");
@@ -170,11 +171,10 @@ async function testDB() {
       title: "New Title",
       content: "Updated Content",
     });
-    
-    
+
     console.log("Calling updatePost on posts[1], only updating tags");
     const updatePostTagsResult = await updatePost(posts[1].id, {
-      tags: ["#youcandoanything", "#redfish", "#bluefish"]
+      tags: ["#youcandoanything", "#redfish", "#bluefish"],
     });
     console.log("Result:", updatePostTagsResult);
 
