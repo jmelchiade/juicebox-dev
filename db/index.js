@@ -1,6 +1,3 @@
-//THIS IS TOM'S BRANCH
-//h
-
 const PORT = 3000;
 const express = require("express");
 const server = express();
@@ -334,20 +331,19 @@ async function getPostsByTagName(tagName) {
   }
 }
 
-async function getAllTags(){
-  try{
-    const {rows: tags} = await client.query(
+async function getAllTags() {
+  try {
+    const { rows: tags } = await client.query(
       `
       SELECT * FROM tags;
       `
     );
 
     return tags;
-  } catch (error){
+  } catch (error) {
     throw error;
   }
-  }
-
+}
 
 module.exports = {
   client,
@@ -362,7 +358,7 @@ module.exports = {
   getPostsByUser,
   getPostById,
   getPostsByTagName,
-  getAllTags
+  getAllTags,
 };
 
 server.listen(PORT, () => {
