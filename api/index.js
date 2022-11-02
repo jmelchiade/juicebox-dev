@@ -37,7 +37,7 @@ apiRouter.use("/users", usersRouter);
 const postsRouter = require("./posts");
 apiRouter.use("/posts", postsRouter);
 const tagsRouter = require("./tags");
-const { RowDescriptionMessage } = require("pg-protocol/dist/messages");
+
 apiRouter.use("/tags", tagsRouter);
 
 apiRouter.use((error, req, res, next) => {
