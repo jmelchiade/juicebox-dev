@@ -43,6 +43,11 @@ postsRouter.get("/", async (req, res, next) => {
   const posts = allPosts.filter((post) => {
     return post.active || (req.user && post.author.id === req.user.id);
   });
+  if (req.user) {
+    res.send({ posts });
+  } else {
+    res.send({ posts: allPosts });
+  }
 });
 
 postsRouter.delete("/:postId", requireUser, async (req, res, next) => {
