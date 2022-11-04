@@ -1,17 +1,14 @@
-require('dotenv').config()
+require("dotenv").config();
 
-const PORT = 3000;
+const { PORT = 3000 } = process.env;
 
 const express = require("express");
 const server = express();
-
 
 const morgan = require("morgan");
 server.use(morgan("dev"));
 
 server.use(express.json());
-
-
 
 server.use((req, res, next) => {
   console.log("<____Body Logger START____>");
